@@ -33,17 +33,15 @@
 
 package com.raywenderlich.android.imet.ui.details
 
-import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Transformations
-import com.raywenderlich.android.imet.IMetApp
+import android.arch.lifecycle.ViewModel
+import com.raywenderlich.android.imet.data.PeopleRepository
 import com.raywenderlich.android.imet.data.model.People
 
-class PeopleDetailsViewModel(application: Application) : AndroidViewModel(application) {
+class PeopleDetailsViewModel(private val peopleRepository: PeopleRepository) : ViewModel() {
 
-  private val peopleRepository = getApplication<IMetApp>().getPeopleRepository()
   private val peopleId = MutableLiveData<Int>()
 
   // Maps people id to people details

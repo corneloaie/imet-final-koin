@@ -34,13 +34,15 @@
 package com.raywenderlich.android.imet
 
 import android.app.Application
-import com.raywenderlich.android.imet.data.PeopleRepository
+import org.koin.android.ext.android.startKoin
 
 class IMetApp : Application() {
 
   /**
    * Provides centralised Repository throughout the app
    */
-  fun getPeopleRepository() = PeopleRepository(this)
-
+  override fun onCreate() {
+      super.onCreate()
+      startKoin(this, listOf(appModule))
+  }
 }

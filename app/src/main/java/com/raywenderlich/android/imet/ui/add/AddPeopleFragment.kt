@@ -33,7 +33,6 @@
 
 package com.raywenderlich.android.imet.ui.add
 
-import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.*
@@ -41,18 +40,18 @@ import androidx.navigation.Navigation
 import com.raywenderlich.android.imet.R
 import com.raywenderlich.android.imet.data.model.People
 import kotlinx.android.synthetic.main.fragment_add_people.*
+import org.koin.android.viewmodel.ext.android.viewModel
 
 /**
  * The Fragment to add people
  */
 class AddPeopleFragment : Fragment() {
 
-  private lateinit var viewModel: AddPeopleViewModel
+  private val viewModel: AddPeopleViewModel by viewModel()
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setHasOptionsMenu(true)
-    viewModel = ViewModelProviders.of(this).get(AddPeopleViewModel::class.java)
   }
 
   override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,

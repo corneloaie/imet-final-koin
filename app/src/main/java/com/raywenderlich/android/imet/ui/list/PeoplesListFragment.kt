@@ -34,7 +34,6 @@
 package com.raywenderlich.android.imet.ui.list
 
 import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.SearchView
@@ -43,95 +42,99 @@ import androidx.navigation.findNavController
 import com.raywenderlich.android.imet.R
 import com.raywenderlich.android.imet.data.model.People
 import kotlinx.android.synthetic.main.fragment_peoples_list.*
+import org.koin.android.ext.android.inject
+import org.koin.android.viewmodel.ext.android.viewModel
 
 /**
  * The Fragment to show people list
  */
 class PeoplesListFragment : Fragment(),
-    PeoplesListAdapter.OnItemClickListener,
-    SearchView.OnQueryTextListener,
-    SearchView.OnCloseListener {
+        PeoplesListAdapter.OnItemClickListener,
+        SearchView.OnQueryTextListener,
+        SearchView.OnCloseListener {
 
-  private lateinit var searchView: SearchView
-  private lateinit var viewModel: PeoplesListViewModel
+    private lateinit var searchView: SearchView
+    private val viewModel: PeoplesListViewModel by viewModel()
+    private val adapter: PeoplesListAdapter by inject()
 
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    setHasOptionsMenu(true)
-    viewModel = ViewModelProviders.of(this).get(PeoplesListViewModel::class.java)
-  }
-
-  override fun onCreateView(
-      inflater: LayoutInflater, container: ViewGroup?,
-      savedInstanceState: Bundle?
-  ): View? {
-    return inflater.inflate(R.layout.fragment_peoples_list, container, false)
-  }
-
-  override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-    super.onCreateOptionsMenu(menu, inflater)
-    inflater?.inflate(R.menu.menu_peoples_list, menu)
-
-    // Initialize Search View
-    searchView = menu?.findItem(R.id.menu_search)?.actionView as SearchView
-    searchView.setOnQueryTextListener(this)
-    searchView.setOnCloseListener(this)
-  }
-
-  override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    super.onViewCreated(view, savedInstanceState)
-
-    // Start observing people list
-    viewModel.getPeopleList().observe(this, Observer<List<People>> { peoples ->
-      peoples?.let {
-        populatePeopleList(peoples)
-      }
-    })
-
-    // Navigate to add people
-    addFab.setOnClickListener {
-      view.findNavController().navigate(R.id.action_peoplesListFragment_to_addPeopleFragment)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
     }
-  }
 
-  /**
-   * Callback for searchView text change
-   */
-  override fun onQueryTextChange(newText: String?) = true
-
-  /**
-   * Callback for searchView query submit
-   */
-  override fun onQueryTextSubmit(query: String?): Boolean {
-    viewModel.searchPeople(query!!)
-    return true
-  }
-
-  /**
-   * Callback for searchView close
-   */
-  override fun onClose(): Boolean {
-    viewModel.getAllPeople()
-    searchView.onActionViewCollapsed()
-    return true
-  }
-
-  /**
-   * Populates peopleRecyclerView with all people info
-   */
-  private fun populatePeopleList(peopleList: List<People>) {
-    peopleRecyclerView.adapter = PeoplesListAdapter(peopleList, this)
-  }
-
-  /**
-   * Navigates to people details on item click
-   */
-  override fun onItemClick(people: People, itemView: View) {
-    val peopleBundle = Bundle().apply {
-      putInt(getString(R.string.people_id), people.id)
+    override fun onCreateView(
+            inflater: LayoutInflater, container: ViewGroup?,
+            savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.fragment_peoples_list, container, false)
     }
-    view?.findNavController()
-        ?.navigate(R.id.action_peoplesListFragment_to_peopleDetailsFragment, peopleBundle)
-  }
+
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater?.inflate(R.menu.menu_peoples_list, menu)
+
+        // Initialize Search View
+        searchView = menu?.findItem(R.id.menu_search)?.actionView as SearchView
+        searchView.setOnQueryTextListener(this)
+        searchView.setOnCloseListener(this)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        adapter.clickListener = this
+        peopleRecyclerView.adapter = adapter
+
+        // Start observing people list
+        viewModel.getPeopleList().observe(this, Observer<List<People>> { peoples ->
+            peoples?.let {
+                populatePeopleList(peoples)
+            }
+        })
+
+        // Navigate to add people
+        addFab.setOnClickListener {
+            view.findNavController().navigate(R.id.action_peoplesListFragment_to_addPeopleFragment)
+        }
+    }
+
+    /**
+     * Callback for searchView text change
+     */
+    override fun onQueryTextChange(newText: String?) = true
+
+    /**
+     * Callback for searchView query submit
+     */
+    override fun onQueryTextSubmit(query: String?): Boolean {
+        viewModel.searchPeople(query!!)
+        return true
+    }
+
+    /**
+     * Callback for searchView close
+     */
+    override fun onClose(): Boolean {
+        viewModel.getAllPeople()
+        searchView.onActionViewCollapsed()
+        return true
+    }
+
+    /**
+     * Populates peopleRecyclerView with all people info
+     */
+    private fun populatePeopleList(peopleList: List<People>) {
+        adapter.onNewData(peopleList)
+    }
+
+    /**
+     * Navigates to people details on item click
+     */
+    override fun onItemClick(people: People, itemView: View) {
+        val peopleBundle = Bundle().apply {
+            putInt(getString(R.string.people_id), people.id)
+        }
+        view?.findNavController()
+                ?.navigate(R.id.action_peoplesListFragment_to_peopleDetailsFragment, peopleBundle)
+    }
 
 }
